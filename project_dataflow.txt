@@ -1,0 +1,246 @@
+# Project Dataflow - GymTrack
+
+## Last Updated: 2026-01-25
+
+---
+
+## === SYSTEM ARCHITECTURE OVERVIEW ===
+
+GymTrack is a minimal, client-side only gym workout tracking application with a **day-based workout plan**.
+There is NO backend - all data is stored in the browser's localStorage.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Browser (Client)                        │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │                  React Application                   │    │
+│  │  ┌───────────┐  ┌──────────────────┐  ┌──────────┐  │    │
+│  │  │    App    │──│ useWorkoutProgress│──│localStorage│ │    │
+│  │  │ Component │  │      Hook        │  │  (data)  │  │    │
+│  │  └───────────┘  └──────────────────┘  └──────────┘  │    │
+│  │        │                                             │    │
+│  │        ▼                                             │    │
+│  │  ┌───────────────────────────────────────────────┐  │    │
+│  │  │           Day-Based Workout Plan              │  │    │
+│  │  │  Mon│Tue│Wed│Thu│Fri (Sat/Sun = Rest)         │  │    │
+│  │  └───────────────────────────────────────────────┘  │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## === WORKOUT PLAN STRUCTURE ===
+
+### Day-Based Schedule
+| Day | Name | Focus |
+|-----|------|-------|
+| Monday | Push Day | Chest, Shoulders, Triceps |
+| Tuesday | Pull Day | Back, Biceps |
+| Wednesday | Legs Day | Quads, Hamstrings, Calves |
+| Thursday | Full Body Recovery | Activation & Recovery |
+| Friday | Push/Pull Combo | Upper Focus + Shoulders |
+| Sat/Sun | Rest Day | Recovery |
+
+### Each Workout Day Contains
+1. **Main Exercises** (5-6 exercises)
+2. **Core Exercises** (3-4 exercises)
+3. **Flexibility** stretches
+
+### Per-Set Weight Tracking
+Each exercise has multiple sets (typically 4), and each set tracks:
+- **Weight**: The weight used for that specific set
+- **Completed**: Whether the set is done
+
+This allows tracking progressive overload within a workout (e.g., Set 1: 60kg, Set 2: 65kg, etc.)
+
+---
+
+## === DETAILED DATA FLOWS ===
+
+### 1. Application Load Flow
+```
+1. Browser loads index.html
+2. main.tsx mounts <App /> inside React.StrictMode
+3. App determines current day of week
+4. useWorkoutProgress loads saved progress from localStorage
+5. If weekend → show RestDayView
+6. If weekday → show DaySelector + WorkoutView for today
+7. Framer Motion animates all components in
+```
+
+### 2. Day Selection Flow
+```
+1. User clicks a day tab in DaySelector
+2. AnimatePresence exits current WorkoutView
+3. selectedDay state updates
+4. New WorkoutView animates in with staggered exercises
+5. Progress data loads for selected day's exercises
+```
+
+### 3. Exercise Completion Flow
+```
+1. User clicks checkbox on exercise
+2. onToggleComplete(exerciseId) called
+3. completedExercises Set updated
+4. useEffect saves to localStorage with today's date
+5. ExerciseCard animates completion indicator
+6. Progress bar in WorkoutView updates
+```
+
+### 4. Weight Update Flow
+```
+1. User clicks weight display on exercise
+2. Input mode activates with current weight
+3. User types new weight
+4. On blur/Enter: onUpdateWeight(id, newWeight) called
+5. exerciseProgress state updates
+6. useEffect saves to localStorage (persists forever)
+7. Input mode closes, weight animates update
+```
+
+### 5. Daily Reset Flow
+```
+1. New day begins (detected by date check)
+2. On load, completedExercises checks stored date
+3. If different day → completedExercises cleared
+4. exerciseProgress persists (weights remember progress)
+5. User starts fresh with previous weights loaded
+```
+
+---
+
+## === DATA STRUCTURES ===
+
+### WorkoutDay (Static Plan)
+```typescript
+{
+  id: string;           // 'monday', 'tuesday', etc.
+  day: string;          // 'Monday', 'Tuesday', etc.
+  name: string;         // 'Push Day', 'Pull Day', etc.
+  focus: string;        // 'Chest, Shoulders, Triceps'
+  color: string;        // Gradient classes
+  emoji: string;        // '💪', '🔥', etc.
+  exercises: Exercise[];
+  coreExercises: Exercise[];
+  flexibility: string[];
+}
+```
+
+### Exercise Object
+```typescript
+{
+  id: string;           // 'mon-1', 'tue-2', etc.
+  name: string;         // 'Bench Press'
+  weight: number;       // Default weight
+  unit: 'kg' | 'lbs';
+  sets: number;
+  reps: number;
+  notes?: string;       // Tips like 'Last set: AMRAP'
+  completed?: boolean;  // Runtime only
+}
+```
+
+### localStorage Keys
+```json
+{
+  "gym-exercise-progress": {
+    "mon-1": 65,
+    "tue-2": 50
+    // exerciseId → current weight
+  },
+  "gym-completed-exercises": {
+    "date": "2026-01-25",
+    "exercises": ["mon-1", "mon-2", "mon-c1"]
+  }
+}
+```
+
+---
+
+## === ANIMATION SYSTEM ===
+
+### Framer Motion Usage
+| Component | Animation Type |
+|-----------|----------------|
+| DaySelector | Staggered fade-in, shared layout for selection |
+| WorkoutView | Page transition (fade + slide) |
+| ExerciseCard | Staggered slide-in, completion indicator |
+| Checkbox | Scale on tap, checkmark pop-in |
+| Progress Bar | Width animation on completion |
+| Weight Button | Hover/tap scale effects |
+
+### AnimatePresence
+- Used for exit animations when switching days
+- `mode="wait"` ensures clean transitions
+
+---
+
+## === STATE MANAGEMENT FLOW ===
+
+```
+┌──────────────────┐     ┌────────────────────┐
+│  Static Workout  │     │  useWorkoutProgress │
+│      Plan        │     │       Hook          │
+│  (workoutPlan.ts)│     │                     │
+└────────┬─────────┘     └──────────┬──────────┘
+         │                          │
+         ▼                          ▼
+┌─────────────────────────────────────────────┐
+│                   App.tsx                    │
+│  • Merges static plan with saved progress   │
+│  • Handles day selection                     │
+│  • Routes to WorkoutView or RestDayView     │
+└─────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────┐
+│              WorkoutView.tsx                 │
+│  • Renders exercises with progress overlay  │
+│  • Calculates completion percentage         │
+│  • Passes callbacks to ExerciseCard         │
+└─────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────┐
+│             ExerciseCard.tsx                 │
+│  • Individual exercise display              │
+│  • Inline weight editing                    │
+│  • Completion toggle checkbox               │
+└─────────────────────────────────────────────┘
+```
+
+---
+
+## === COMPONENT HIERARCHY ===
+
+```
+App
+├── Animated Background (motion.div)
+├── Header
+│   ├── Logo + Day Name
+│   └── Reset Button
+├── DaySelector (Mon-Fri tabs)
+└── AnimatePresence
+    ├── RestDayView (weekends)
+    └── WorkoutView (weekdays)
+        ├── Workout Header + Progress Bar
+        ├── Main Exercises Section
+        │   └── ExerciseCard (for each)
+        ├── Core Exercises Section
+        │   └── ExerciseCard (for each)
+        └── Flexibility Section
+```
+
+---
+
+## === ERROR HANDLING ===
+
+### localStorage Errors
+- Wrapped in try-catch
+- Fallback to empty state on parse errors
+- Graceful degradation
+
+### Date Handling
+- Daily completion reset based on ISO date string
+- Handles timezone correctly via split('T')[0]

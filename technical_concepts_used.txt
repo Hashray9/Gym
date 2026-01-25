@@ -1,0 +1,129 @@
+# Technical Concepts Used - GymTrack
+
+## Last Updated: 2026-01-25
+
+---
+
+## === FRONTEND ===
+
+### React 18+ with TypeScript
+- **Purpose**: Core UI library for building component-based user interfaces
+- **Use Case**: All UI components, state management, and reactivity
+
+### Vite 7.x
+- **Purpose**: Fast build tool and development server
+- **Use Case**: Development server, hot module replacement, production bundling
+
+### TailwindCSS 4.x (via @tailwindcss/vite)
+- **Purpose**: Utility-first CSS framework
+- **Use Case**: Styling all components with responsive design
+
+### shadcn/ui (Nova Style with Base-UI)
+- **Purpose**: Pre-built accessible UI component library
+- **Use Case**: Button, Card, Dialog, Input, ScrollArea, Table components
+- **Theme**: Gray base color with Lime accent, dark mode, Roboto font
+
+### Framer Motion
+- **Purpose**: Production-ready animation library for React
+- **Use Case**: Page transitions, staggered animations, gesture-based interactions
+- **Features Used**:
+  - `motion.div` for animated components
+  - `AnimatePresence` for exit animations
+  - `layoutId` for shared element transitions
+  - `whileTap`, `whileHover` for gesture animations
+  - Staggered delays for list item animations
+
+### @base-ui/react
+- **Purpose**: Unstyled, accessible React primitives (used by shadcn)
+- **Use Case**: Dialog primitives with `render` prop pattern instead of `asChild`
+
+### Hugeicons (@hugeicons/react)
+- **Purpose**: Icon library integrated with shadcn
+- **Use Case**: UI icons throughout the app
+
+### @fontsource-variable/roboto
+- **Purpose**: Self-hosted Google Fonts
+- **Use Case**: Primary app font (Roboto)
+
+---
+
+## === STATE MANAGEMENT ===
+
+### React useState Hook
+- **Purpose**: Local component state management
+- **Use Case**: Form inputs, dialog open state, exercise list
+
+### React useEffect Hook
+- **Purpose**: Side effects and lifecycle management
+- **Use Case**: Loading/saving data to localStorage
+
+### React useMemo Hook
+- **Purpose**: Memoized computed values
+- **Use Case**: Exercise progress calculations, search filtering
+
+### Custom Hook (useWorkouts)
+- **Purpose**: Centralized workout data management
+- **Use Case**: CRUD operations for workouts with localStorage persistence
+
+---
+
+## === DATA PERSISTENCE ===
+
+### localStorage API
+- **Purpose**: Browser-based persistent storage
+- **Use Case**: Storing all workout data locally (no backend required)
+- **Key**: `gym-workouts`
+
+---
+
+## === DEPENDENCIES ===
+
+### Production Dependencies
+- react: ^19.0.0
+- react-dom: ^19.0.0
+- tailwindcss: ^4.x
+- @base-ui/react: (shadcn dependency)
+- @hugeicons/react: (icon library)
+- @fontsource-variable/roboto: (font)
+- class-variance-authority: (component variants)
+- clsx: (class merging)
+- tailwind-merge: (tailwind class merging)
+- tw-animate-css: (animations)
+
+### Development Dependencies
+- typescript: ^5.x
+- vite: ^7.3.x
+- @vitejs/plugin-react
+- @tailwindcss/vite
+- @types/node
+- @types/react
+- @types/react-dom
+- eslint, eslint plugins
+
+---
+
+## === CONFIGURATION ===
+
+### TypeScript Path Aliases
+- **@/*** → **./src/***
+- Configured in: tsconfig.json, tsconfig.app.json, vite.config.ts
+
+### CSS Variables (oklch color space)
+- Theme colors defined in src/index.css
+- Light/Dark mode support via `.dark` class
+
+---
+
+## === COMPONENT PATTERNS ===
+
+### Controlled Components
+- All form inputs are controlled via useState
+- Dialog open state managed via controlled props
+
+### Render Prop Pattern
+- DialogTrigger uses `render` prop for custom trigger elements
+- Base-UI pattern instead of Radix `asChild`
+
+### Compound Components
+- Card (CardHeader, CardContent, CardTitle)
+- Dialog (DialogTrigger, DialogContent, DialogHeader, DialogTitle)
