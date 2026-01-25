@@ -112,6 +112,10 @@
 - Theme colors defined in src/index.css
 - Light/Dark mode support via `.dark` class
 
+### Build Configuration (Vite)
+- **outDir**: Changed from `dist` to `build` to align with deployment platform expectations.
+- **emptyOutDir**: Set to `true` to ensure clean builds.
+
 ---
 
 ## === COMPONENT PATTERNS ===

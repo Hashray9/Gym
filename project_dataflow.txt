@@ -108,6 +108,15 @@ This allows tracking progressive overload within a workout (e.g., Set 1: 60kg, S
 5. User starts fresh with previous weights loaded
 ```
 
+### 6. Build and Deployment Flow
+```
+1. Developer runs `npm run build`
+2. `tsc -b` performs type checking (no unused variables allowed)
+3. `vite build` bundles the application
+4. Output is generated in the `build/` directory (configured in vite.config.ts)
+5. Deployment platform (e.g., Vercel/Netlify) uploads the `build/` folder
+```
+
 ---
 
 ## === DATA STRUCTURES ===
