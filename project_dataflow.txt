@@ -140,12 +140,12 @@ This allows tracking progressive overload within a workout (e.g., Set 1: 60kg, S
 ```typescript
 {
   id: string;           // 'mon-1', 'tue-2', etc.
-  name: string;         // 'Bench Press'
-  weight: number;       // Default weight
-  unit: 'kg' | 'lbs';
+  name: string;         // 'Wall Handstand Push-up Negatives'
+  weight: number;       // Default weight (0 for bodyweight)
+  unit: string;         // 'kg' | '+kg' | 'sec'
   sets: number;
-  reps: number;
-  notes?: string;       // Tips like 'Last set: AMRAP'
+  reps: number | string;// 8, '8-12', 'Max', '30s'
+  notes?: string;       // Tips like 'Very slow descent'
   completed?: boolean;  // Runtime only
 }
 ```

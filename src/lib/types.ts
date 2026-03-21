@@ -3,9 +3,9 @@ export interface Exercise {
     id: string;
     name: string;
     weight: number;
-    unit: 'kg' | 'lbs';
+    unit: string;
     sets: number;
-    reps: number;
+    reps: number | string;
     notes?: string;
     completed?: boolean;
 }
