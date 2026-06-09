@@ -1,6 +1,6 @@
 # Project Dataflow - GymTrack
 
-## Last Updated: 2026-01-25
+## Last Updated: 2026-06-09
 
 ---
 
@@ -32,27 +32,30 @@ There is NO backend - all data is stored in the browser's localStorage.
 
 ## === WORKOUT PLAN STRUCTURE ===
 
-### Day-Based Schedule
-| Day | Name | Focus |
-|-----|------|-------|
-| Monday | Push Day | Chest, Shoulders, Triceps |
-| Tuesday | Pull Day | Back, Biceps |
-| Wednesday | Legs Day | Quads, Hamstrings, Calves |
-| Thursday | Full Body Recovery | Activation & Recovery |
-| Friday | Push/Pull Combo | Upper Focus + Shoulders |
-| Sat/Sun | Rest Day | Recovery |
+### Day-Based Schedule (7-Day Cycle)
+| Day | Name | Focus | Type |
+|-----|------|-------|------|
+| Monday | Push + Handstand | Chest, Shoulders, Triceps | Strength + Skill |
+| Tuesday | Pull + Core | Back, Lats, Biceps, Abs | Strength + Core |
+| Wednesday | Active Recovery | Yoga & Mobility Flow | 20-min Flow |
+| Thursday | Legs + Mobility | Quads, Glutes, Hamstrings | Strength + Mobility |
+| Friday | Shoulders + Arms | Delts, Biceps, Triceps | Strength + Skill |
+| Saturday | Full Body Athletic | Power, Conditioning, Core | Athletic Circuit |
+| Sunday | Active Recovery | Yoga & Mobility Flow | 20-min Flow |
 
 ### Each Workout Day Contains
-1. **Main Exercises** (5-6 exercises)
-2. **Core Exercises** (3-4 exercises)
-3. **Flexibility** stretches
+1. **Warm-up Block** (Dynamic pre-workout movements)
+2. **Skill Block** (Optional handstand progressions & holds)
+3. **Strength Block / Circuit** (Compound lifts, calisthenics, or conditioning)
+4. **Core Finisher** (Specific ab strengthening drills)
+5. **Flexibility & Mobility** (Stretches targeting pelvic alignment and thoracic extension)
 
 ### Per-Set Weight Tracking
-Each exercise has multiple sets (typically 4), and each set tracks:
-- **Weight**: The weight used for that specific set
-- **Completed**: Whether the set is done
+Each strength exercise has multiple sets (typically 3-4), and each set tracks:
+- **Weight**: The weight used for that specific set (updated inline)
+- **Completed**: Whether the exercise is completed
 
-This allows tracking progressive overload within a workout (e.g., Set 1: 60kg, Set 2: 65kg, etc.)
+This allows tracking progressive overload within a workout (e.g., Set 1: 40kg, Set 2: 45kg, etc.)
 
 ---
 
@@ -62,11 +65,10 @@ This allows tracking progressive overload within a workout (e.g., Set 1: 60kg, S
 ```
 1. Browser loads index.html
 2. main.tsx mounts <App /> inside React.StrictMode
-3. App determines current day of week
-4. useWorkoutProgress loads saved progress from localStorage
-5. If weekend → show RestDayView
-6. If weekday → show DaySelector + WorkoutView for today
-7. Framer Motion animates all components in
+3. App determines current day of week and maps it to a day ID (monday-sunday)
+4. useWorkoutProgress loads saved set progress, daily completion list, athlete profile, and handstand roadmap checkmarks from localStorage
+5. Renders header, tab selector, and active tab content (defaults to Workout Tracker)
+6. Framer Motion animates active tab views and lists in
 ```
 
 ### 2. Day Selection Flow
@@ -126,42 +128,68 @@ This allows tracking progressive overload within a workout (e.g., Set 1: 60kg, S
 {
   id: string;           // 'monday', 'tuesday', etc.
   day: string;          // 'Monday', 'Tuesday', etc.
-  name: string;         // 'Push Day', 'Pull Day', etc.
+  name: string;         // 'Push + Handstand', etc.
   focus: string;        // 'Chest, Shoulders, Triceps'
-  color: string;        // Gradient classes
-  emoji: string;        // '💪', '🔥', etc.
+  color: string;        // Gradient color classes
+  emoji: string;        // '🤸‍♂️', '🔥', etc.
+  duration: number;     // e.g. 60
+  timeDistribution: {
+    warmup: number;
+    skill?: number;
+    strength?: number;
+    circuit?: number;
+    core?: number;
+    flexibility: number;
+  };
+  warmup: Exercise[];
+  skills?: Exercise[];
   exercises: Exercise[];
   coreExercises: Exercise[];
-  flexibility: string[];
+  flexibility: Exercise[];
+  trainerTip?: string;
 }
 ```
 
 ### Exercise Object
 ```typescript
 {
-  id: string;           // 'mon-1', 'tue-2', etc.
-  name: string;         // 'Wall Handstand Push-up Negatives'
-  weight: number;       // Default weight (0 for bodyweight)
-  unit: string;         // 'kg' | '+kg' | 'sec'
+  id: string;           // 'd1-e1', 'd2-c1', etc.
+  name: string;         // 'Barbell bench press'
+  weight: number;       // Checked-in default weight
+  unit: string;         // 'kg' | 's' | 'reps' | 'att'
   sets: number;
-  reps: number | string;// 8, '8-12', 'Max', '30s'
-  notes?: string;       // Tips like 'Very slow descent'
-  completed?: boolean;  // Runtime only
+  reps: number | string;// 10, '6-8', 'Max reps'
+  notes?: string;       // Tips like 'Control the eccentric'
+  completed?: boolean;
+  type?: 'Gym' | 'Calisthenics';
+  restTime?: number;    // Rest duration in seconds (e.g., 60)
+  coachingCue?: string; // e.g. 'Drive through hips, not arms'
 }
 ```
 
 ### localStorage Keys
 ```json
 {
-  "gym-exercise-progress": {
-    "mon-1": 65,
-    "tue-2": 50
-    // exerciseId → current weight
+  "gym-set-progress": {
+    "d1-e1": [
+      {"weight": 40, "completed": false},
+      {"weight": 42.5, "completed": false}
+    ]
   },
   "gym-completed-exercises": {
-    "date": "2026-01-25",
-    "exercises": ["mon-1", "mon-2", "mon-c1"]
-  }
+    "date": "2026-06-09",
+    "exercises": ["d1-w1", "d1-w2", "d1-e1"]
+  },
+  "gym-athlete-profile": {
+    "weight": 71,
+    "height": "5'8\"",
+    "duration": 60,
+    "level": "Intermediate",
+    "diet": "Vegetarian",
+    "goals": ["Athletic physique", "Handstand mastery", "Six pack abs"],
+    "laggingFocus": ["Shoulders", "Back & Lats", "Arms", "Core & Abs"]
+  },
+  "gym-roadmap-progress": ["crow_pose", "mayurasana"]
 }
 ```
 
@@ -227,18 +255,35 @@ This allows tracking progressive overload within a workout (e.g., Set 1: 60kg, S
 App
 ├── Animated Background (motion.div)
 ├── Header
-│   ├── Logo + Day Name
-│   └── Reset Button
-├── DaySelector (Mon-Fri tabs)
-└── AnimatePresence
-    ├── RestDayView (weekends)
-    └── WorkoutView (weekdays)
-        ├── Workout Header + Progress Bar
-        ├── Main Exercises Section
-        │   └── ExerciseCard (for each)
-        ├── Core Exercises Section
-        │   └── ExerciseCard (for each)
-        └── Flexibility Section
+│   ├── Logo + Subtitle
+│   └── Reset Workout Button
+│   └── Navigation Tabs (Workout, Handstand, Six Pack, Profile)
+├── AnimatePresence (Active Tab Switch)
+│   ├── Workout Tab
+│   │   ├── DaySelector (Mon-Sun tabs)
+│   │   ├── Celebration Card (if 100% completed)
+│   │   └── WorkoutView
+│   │       ├── Header + Progress Bar
+│   │       ├── Trainer Tip
+│   │       ├── Warm-up Block → ExerciseCard (for each)
+│   │       ├── Skill Block → ExerciseCard (for each)
+│   │       ├── Strength Block → ExerciseCard (for each)
+│   │       ├── Core Finisher → ExerciseCard (for each)
+│   │       └── Flexibility & Mobility → ExerciseCard (for each)
+│   ├── Handstand Track Tab
+│   │   ├── Overview & Goal
+│   │   ├── Skills Checklist (Crow, Peacock, Wall Hold, Freestanding)
+│   │   ├── Roadmap Phases (Foundation, Alignment, Balance, Freestanding)
+│   │   └── The 3 Secrets Cards
+│   ├── Six Pack Tab
+│   │   ├── Core Definition Header
+│   │   ├── 5 Diet & Lifestyle Rules (Dynamic protein calculator)
+│   │   └── Overload & Recovery Guides
+│   └── Profile Tab
+│       ├── Athlete Stats Cards
+│       └── Edit Athlete Specifications Form
+├── RestTimer (Floating Widget - AnimatePresence)
+└── Footer
 ```
 
 ---

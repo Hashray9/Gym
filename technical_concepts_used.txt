@@ -1,6 +1,6 @@
 # Technical Concepts Used - GymTrack
 
-## Last Updated: 2026-01-25
+## Last Updated: 2026-06-09
 
 ---
 
@@ -51,7 +51,7 @@
 
 ### React useState Hook
 - **Purpose**: Local component state management
-- **Use Case**: Form inputs, dialog open state, exercise list
+- **Use Case**: Active tabs, countdown remaining seconds, active rest timer configurations, user profile stats, exercise weights/reps input states
 
 ### React useEffect Hook
 - **Purpose**: Side effects and lifecycle management
@@ -61,9 +61,9 @@
 - **Purpose**: Memoized computed values
 - **Use Case**: Exercise progress calculations, search filtering
 
-### Custom Hook (useWorkouts)
-- **Purpose**: Centralized workout data management
-- **Use Case**: CRUD operations for workouts with localStorage persistence
+### Custom Hook (useWorkoutProgress)
+- **Purpose**: Centralized tracking for workout sets, daily completions, handstand roadmap progress, and athlete profile
+- **Use Case**: State sync, CRUD operations, and automatic synchronization to browser localStorage
 
 ---
 
@@ -72,7 +72,11 @@
 ### localStorage API
 - **Purpose**: Browser-based persistent storage
 - **Use Case**: Storing all workout data locally (no backend required)
-- **Key**: `gym-workouts`
+- **Keys**:
+  - `gym-set-progress`: Logs of weights logged per set
+  - `gym-completed-exercises`: Daily checklist progress
+  - `gym-athlete-profile`: User specifications (weight, height, diet, level)
+  - `gym-roadmap-progress`: Achievement checkmarks for the 8-week handstand program
 
 ---
 

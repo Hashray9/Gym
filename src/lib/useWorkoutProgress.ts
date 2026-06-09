@@ -1,17 +1,31 @@
 import { useState, useEffect } from 'react';
-import type { SetData } from './types';
+import type { SetData, AthleteProfile } from './types';
 
 const PROGRESS_KEY = 'gym-set-progress';
 const COMPLETED_KEY = 'gym-completed-exercises';
+const PROFILE_KEY = 'gym-athlete-profile';
+const ROADMAP_KEY = 'gym-roadmap-progress';
 
-// Structure: { [exerciseId]: SetData[] }
 type SetProgressMap = Record<string, SetData[]>;
 
+const DEFAULT_PROFILE: AthleteProfile = {
+    weight: 71,
+    height: "5'8\"",
+    duration: 60,
+    level: "Intermediate",
+    diet: "Vegetarian",
+    goals: ["Athletic physique", "Handstand mastery", "Six pack abs"],
+    laggingFocus: ["Shoulders", "Back & Lats", "Arms", "Core & Abs"]
+};
+
+// By default, Crow Pose and Mayurasana are achieved
+const DEFAULT_ROADMAP = ['crow_pose', 'mayurasana'];
+
 export function useWorkoutProgress() {
-    // Store per-set data for each exercise
     const [setProgress, setSetProgress] = useState<SetProgressMap>({});
-    // Store completed exercise IDs for today
     const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
+    const [athleteProfile, setAthleteProfile] = useState<AthleteProfile>(DEFAULT_PROFILE);
+    const [roadmapCompleted, setRoadmapCompleted] = useState<Set<string>>(new Set(DEFAULT_ROADMAP));
     const [isLoading, setIsLoading] = useState(true);
 
     // Load from localStorage on mount
@@ -22,7 +36,6 @@ export function useWorkoutProgress() {
                 setSetProgress(JSON.parse(storedProgress));
             }
 
-            // Check if completed exercises are from today
             const storedCompleted = localStorage.getItem(COMPLETED_KEY);
             if (storedCompleted) {
                 const { date, exercises } = JSON.parse(storedCompleted);
@@ -30,6 +43,16 @@ export function useWorkoutProgress() {
                 if (date === today) {
                     setCompletedExercises(new Set(exercises));
                 }
+            }
+
+            const storedProfile = localStorage.getItem(PROFILE_KEY);
+            if (storedProfile) {
+                setAthleteProfile(JSON.parse(storedProfile));
+            }
+
+            const storedRoadmap = localStorage.getItem(ROADMAP_KEY);
+            if (storedRoadmap) {
+                setRoadmapCompleted(new Set(JSON.parse(storedRoadmap)));
             }
         } catch (error) {
             console.error('Failed to load workout progress:', error);
@@ -55,11 +78,24 @@ export function useWorkoutProgress() {
         }
     }, [completedExercises, isLoading]);
 
+    // Save profile to localStorage
+    useEffect(() => {
+        if (!isLoading) {
+            localStorage.setItem(PROFILE_KEY, JSON.stringify(athleteProfile));
+        }
+    }, [athleteProfile, isLoading]);
+
+    // Save roadmap to localStorage
+    useEffect(() => {
+        if (!isLoading) {
+            localStorage.setItem(ROADMAP_KEY, JSON.stringify([...roadmapCompleted]));
+        }
+    }, [roadmapCompleted, isLoading]);
+
     const updateSetData = (exerciseId: string, setIndex: number, data: Partial<SetData>) => {
         setSetProgress((prev) => {
             const exerciseSets = [...(prev[exerciseId] || [])];
 
-            // Ensure array is long enough
             while (exerciseSets.length <= setIndex) {
                 exerciseSets.push({ weight: 0, completed: false });
             }
@@ -94,7 +130,6 @@ export function useWorkoutProgress() {
 
     const resetToday = () => {
         setCompletedExercises(new Set());
-        // Reset all completed flags but keep weights
         setSetProgress((prev) => {
             const updated: SetProgressMap = {};
             for (const [exerciseId, sets] of Object.entries(prev)) {
@@ -104,13 +139,36 @@ export function useWorkoutProgress() {
         });
     };
 
+    const updateAthleteProfile = (profile: Partial<AthleteProfile>) => {
+        setAthleteProfile((prev) => ({
+            ...prev,
+            ...profile
+        }));
+    };
+
+    const toggleRoadmapCompleted = (skillId: string) => {
+        setRoadmapCompleted((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(skillId)) {
+                newSet.delete(skillId);
+            } else {
+                newSet.add(skillId);
+            }
+            return newSet;
+        });
+    };
+
     return {
         setProgress,
         completedExercises,
+        athleteProfile,
+        roadmapCompleted,
         isLoading,
         updateSetData,
         getSetData,
         toggleComplete,
         resetToday,
+        updateAthleteProfile,
+        toggleRoadmapCompleted
     };
 }

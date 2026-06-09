@@ -1,6 +1,6 @@
 # Security Updates - GymTrack
 
-## Last Updated: 2026-01-25
+## Last Updated: 2026-06-09
 
 ---
 
@@ -42,6 +42,7 @@
 | 2026-01-25 | Initial | N/A | Fresh project setup with latest packages | N/A |
 | 2026-01-25 | scroll-area.tsx | TS Error: 'React' is defined but never used | Removed unused React import | Fixed build failure |
 | 2026-01-25 | vite.config.ts | Wrong publish directory | Set `build.outDir` to 'build' | Fixed deployment failure |
+| 2026-06-09 | RestTimer.tsx | TS Error: Cannot find namespace 'NodeJS' | Replaced NodeJS.Timeout with any/number for browser | Fixed compilation failure |
 
 ---
 

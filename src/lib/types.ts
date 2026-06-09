@@ -8,6 +8,19 @@ export interface Exercise {
     reps: number | string;
     notes?: string;
     completed?: boolean;
+    type?: 'Gym' | 'Calisthenics';
+    restTime?: number; // in seconds
+    coachingCue?: string;
+}
+
+export interface AthleteProfile {
+    weight: number;
+    height: string;
+    duration: number;
+    level: string;
+    diet: string;
+    goals: string[];
+    laggingFocus: string[];
 }
 
 // Data for individual sets within an exercise

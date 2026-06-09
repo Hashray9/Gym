@@ -12,6 +12,7 @@ interface ExerciseCardProps {
     onToggleComplete: (id: string) => void;
     showNotes?: boolean;
     defaultExpanded?: boolean;
+    onStartTimer?: (duration: number, label: string) => void;
 }
 
 export function ExerciseCard({
@@ -23,6 +24,7 @@ export function ExerciseCard({
     onToggleComplete,
     showNotes = true,
     defaultExpanded = false,
+    onStartTimer,
 }: ExerciseCardProps) {
     const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
@@ -115,9 +117,32 @@ export function ExerciseCard({
                         >
                             {exercise.name}
                         </h4>
-                        <p className="text-sm text-muted-foreground">
-                            {exercise.sets} sets × {exercise.reps} reps
-                        </p>
+                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                            <span className="text-xs text-muted-foreground">
+                                {exercise.sets} sets × {exercise.reps} reps
+                            </span>
+                            {exercise.type && (
+                                <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 border ${
+                                    exercise.type === 'Gym'
+                                        ? 'bg-lime-500/10 text-lime-400 border-lime-500/20'
+                                        : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                                }`}>
+                                    {exercise.type}
+                                </span>
+                            )}
+                            {exercise.restTime !== undefined && exercise.restTime > 0 && onStartTimer && (
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onStartTimer(exercise.restTime!, exercise.name);
+                                    }}
+                                    className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 cursor-pointer transition-all flex items-center gap-1"
+                                >
+                                    ⏱️ {exercise.restTime}s Rest
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {/* Weight Summary & Expand Icon */}
@@ -184,16 +209,31 @@ export function ExerciseCard({
                                 </motion.div>
                             ))}
 
-                            {/* Notes */}
-                            {showNotes && exercise.notes && (
-                                <motion.p
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="text-xs text-muted-foreground/70 italic pt-2"
-                                >
-                                    💡 {exercise.notes}
-                                </motion.p>
-                            )}
+                             {/* Coaching Cue */}
+                             {exercise.coachingCue && (
+                                 <motion.div
+                                     initial={{ opacity: 0 }}
+                                     animate={{ opacity: 1 }}
+                                     className="p-3 bg-primary/5 border border-primary/10 text-xs text-primary/90 flex items-start gap-2"
+                                 >
+                                     <span className="shrink-0 text-sm">🎯</span>
+                                     <div>
+                                         <span className="font-extrabold uppercase text-[9px] text-primary/70 block mb-0.5">Coaching Cue</span>
+                                         {exercise.coachingCue}
+                                     </div>
+                                 </motion.div>
+                             )}
+
+                             {/* Notes */}
+                             {showNotes && exercise.notes && (
+                                 <motion.p
+                                     initial={{ opacity: 0 }}
+                                     animate={{ opacity: 1 }}
+                                     className="text-xs text-muted-foreground/70 italic pt-1"
+                                 >
+                                     💡 {exercise.notes}
+                                 </motion.p>
+                             )}
                         </div>
                     </motion.div>
                 )}
